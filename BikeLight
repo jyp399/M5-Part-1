@@ -1,0 +1,95 @@
+#include "M5Atom.h"
+#include <cmath>
+
+int count;
+
+#define interval 250
+unsigned long Time1 (0);
+bool Light;
+
+int White (0xffffff);
+int Red (0x00ff00);
+
+int nreadings (5); 
+#define THRESHOLD 3 
+float accX2(0), accY2(0);
+
+void setup() {
+  M5.begin(true, false, true);\
+  M5.IMU.Init();
+  count = 0;
+  Light = false; 
+}
+
+void loop() { 
+  switch (count) {
+    case 0:
+      M5.dis.clear();
+      break;
+
+    case 1:
+      blinky(Red);
+      break;
+
+    case 2:
+      blinky(White);
+      break;
+
+    case 3:
+      acc_M5(Red);
+      break;
+
+    case 4:
+      acc_M5(White); 
+      break;
+
+    default:
+      break;
+  }
+
+  if (M5.Btn.wasReleased()) { 
+    count++;
+    if (count > 4)
+      count = 0;
+    Serial.println(count);
+  }
+  M5.update();
+}
+
+void blinky(int color) { 
+  unsigned long Time2 = millis();
+  if (Time2 - Time1 >= interval) {
+    Time1 = Time2;
+    if (Light == false) 
+      Light = true;
+
+    else if (Light == true)
+      Light = false; 
+
+    if (Light == true) { 
+      M5.dis.fillpix(color); 
+    }
+
+    else if (Light == false) { 
+      M5.dis.clear(); 
+    }
+  }
+  M5.update();
+}
+
+void acc_M5(int color) {
+  float accX, accY, accZ;
+
+  M5.IMU.getAccelData(&accX, &accY, &accZ);
+
+  accX2 = ((accX2 * (nreadings - 1)) + fabs(accX)) / nreadings; 
+  accY2 = ((accY2 * (nreadings - 1)) + fabs(accY)) / nreadings;
+  
+  if (((accX2 * 10.0) <= THRESHOLD) || ((accY2 * 10.0) <= THRESHOLD)  ) 
+    blinky(color);
+
+  else
+    M5.dis.fillpix(color); 
+
+  M5.update();
+}
