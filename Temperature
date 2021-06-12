@@ -1,0 +1,473 @@
+#include "M5Atom.h"
+#include <String>
+
+int black = 0x000000;
+int white = 0xffffff;
+int red = 0x00ff00 ;
+int blue = 0x0000ff;
+
+int ZERO[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 1,
+  1, 0, 0, 0, 1,
+  1, 0, 0, 0, 1,
+  1, 1, 1, 1, 1
+};
+
+int ONE[25] {
+  0, 0, 1, 0, 0,
+  0, 0, 1, 0, 0,
+  0, 0, 1, 0, 0,
+  0, 0, 1, 0, 0,
+  0, 0, 1, 0, 0
+};
+int TWO[25] {
+  1, 1, 1, 1, 1,
+  0, 0, 0, 0, 1,
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 1, 1, 1, 1
+};
+
+int THREE[25] {
+  1, 1, 1, 1, 1,
+  0, 0, 0, 0, 1,
+  1, 1, 1, 1, 1,
+  0, 0, 0, 0, 1,
+  1, 1, 1, 1, 1
+};
+
+int FOUR[25] {
+  1, 0, 0, 0, 1,
+  1, 0, 0, 0, 1,
+  1, 1, 1, 1, 1,
+  0, 0, 0, 0, 1,
+  0, 0, 0, 0, 1
+};
+
+int FIVE[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 1, 1, 1, 1,
+  0, 0, 0, 0, 1,
+  1, 1, 1, 1, 1
+};
+int SIX[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 1,
+  1, 1, 1, 1, 1
+};
+int SEVEN[25] {
+  1, 1, 1, 1, 1,
+  0, 0, 0, 1, 0,
+  0, 0, 1, 0, 0,
+  0, 1, 0, 0, 0,
+  1, 0, 0, 0, 0
+};
+int EIGHT[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 1,
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 1,
+  1, 1, 1, 1, 1
+};
+int NINE[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 1,
+  1, 1, 1, 1, 1,
+  0, 0, 0, 0, 1,
+  1, 1, 1, 1, 1
+};
+
+
+int POINT[25] {
+  0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0,
+  0, 0, 1, 0, 0
+};
+int WC[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 0, 0, 0, 0,
+  1, 0, 0, 0, 0,
+  1, 1, 1, 1, 1
+};
+
+int WF[25] {
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 1, 1, 1, 1,
+  1, 0, 0, 0, 0,
+  1, 0, 0, 0, 0
+};
+
+float accX = 0;
+float accY = 0;
+float accZ = 0;
+
+float LOW_TOL = 100;
+float HIGH_TOL = 900;
+
+float scaledAccX = 0;
+float scaledAccY = 0;
+float scaledAccZ = 0;
+
+int count = 0;  
+
+#define interval 1000 
+
+int WhiteColorlist[] = {black, white}; 
+int ColdColorlist[] = {black, blue};
+int HotColorlist[] = {black, red};
+
+unsigned long Time1 = 0;
+String TempDis; 
+
+bool C = true; 
+
+float Temp; 
+
+float TempGraph; 
+float TempArr[5] = {0};
+#define Graph_Interval 5000 
+
+float SumTemp(0); 
+int count = 0;
+
+
+int UpperTempC (40); 
+int LowerTempC (15); 
+int UpperTempF (105);
+int LowerTempF (60);
+
+
+bool BUTTON = false; 
+
+bool flag = true; 
+
+void setup() {
+  M5.begin(true, false, true);
+  M5.IMU.Init();
+
+}
+
+
+void getTemp(float& Temp, float& sumTemp, int&count) { 
+  unsigned long Time2 = millis();
+  if (Time2 - Time1 >= interval || Time1 == 0) { 
+    Time1 = Time2;
+    count++; 
+    M5.IMU.getTempData(&Temp);
+
+    if (C == false) {
+      Temp = (Temp * 1.8) + 32; 
+    }
+
+    M5.update();
+
+    sumTemp += Temp; 
+
+    if (count > 24 * 60 * 60) { 
+      count = 0;
+      sumTemp = 0;
+    }
+  }
+}
+
+void DisplayFixedTemp(float temp, bool c) { 
+  TempDis = String(Temp);
+
+  if (c == true) { 
+    TempDis += "C";
+  }
+
+  else if (c == false) {
+    TempDis += "F";
+  }
+
+  DRAW(TempDis, WhiteColorlist);
+}
+
+
+void DisplayAvgTemp(float sumTemp, int count, bool c) { //Function 2
+  float avg_temp;
+  avg_temp = sumTemp / count; 
+  Serial.println(sumTemp);
+  Serial.println(count);
+  Serial.println(avg_temp);
+
+  TempDis = String(avg_temp);
+
+  if (c == true) {
+    TempDis += "C";
+  }
+
+  else if (c == false) {
+    TempDis += "F";
+  }
+
+  DRAW(TempDis, WhiteColorlist);
+
+}
+
+void DisplayColorTemp(float temp, bool c) { //Function 3
+  TempDis = String(Temp);
+
+  if (c == true) {
+    TempDis += "C";
+  }
+
+  else if (c == false) {
+    TempDis += "F";
+  }
+
+  if (c == true) {
+    if (temp > UpperTempC) //if temp is greater than upper bound
+      DRAW(TempDis, HotColorlist); // Red Text
+
+    else if (temp < LowerTempC) //if temp is lower than lower bound
+      DRAW(TempDis, ColdColorlist); // Blue text
+
+    else if (LowerTempC <= temp <= UpperTempC) //if temp is between upper and lower bound
+      DRAW(TempDis, WhiteColorlist); //white text
+  }
+
+  else if (c == false) {
+    if (temp > UpperTempF)
+      DRAW(TempDis, HotColorlist);
+
+    else if (temp < LowerTempF)
+      DRAW(TempDis, ColdColorlist);
+
+    else if (LowerTempF <= temp <= UpperTempF)
+      DRAW(TempDis, WhiteColorlist);
+  }
+
+}
+
+void SketchGraph() {
+  unsigned long Time = millis();
+
+  float avg_temp;
+  SumTemp = 0;
+
+  for (int i = 0; i <= 4; i++) { //get 5 measurements for temperature
+    M5.IMU.getTempData(&TempGraph);
+    TempArr[i] = TempGraph;
+    SumTemp += TempArr[i];
+    Serial.println(TempArr[i]);
+  }
+
+  avg_temp = SumTemp / 5.00; //calculate the average
+  Serial.println(avg_temp);
+
+  for (int i = 0; i <= 4; i++) {
+    TempArr[i] = (TempArr[i] - avg_temp) * 100; //Normalize the data with respect to the average
+    Serial.println(TempArr[i]);
+    TempArr[i] += 2; // Set the readings to the center of the matrix
+    Serial.println(TempArr[i]);
+
+  }
+
+  M5.dis.clear();
+
+  for (int i = 0; i <= 4; i++) {
+    TempArr[i] = 4 - TempArr[i]; //invert the readings, so higher redings appear on the top of matrix
+    M5.dis.drawpix(i, TempArr[i], 0xffffff);
+  }
+
+  M5.update();
+
+  while (millis() < Time + Graph_Interval) {} //every given interval, graph updated
+}
+
+void DRAW(String Dis, int color[]) { 
+
+  int strlength = TempDis.length();
+
+  for (int i = 0; i < strlength; i++) { 
+    M5.dis.clear();
+    delay(500);
+    ChooseChar(Dis[i], color);
+    delay(800);
+    M5.dis.clear();
+    delay(500);
+
+  }
+}
+
+void ChooseChar(char ToDraw, int colorlist[]) { 
+  if (ToDraw == '0')
+    drawArray(ZERO, colorlist);
+  if (ToDraw == '1')
+    drawArray(ONE, colorlist);
+  if (ToDraw == '2')
+    drawArray(TWO, colorlist);
+  if (ToDraw == '3')
+    drawArray(THREE, colorlist);
+  if (ToDraw == '4')
+    drawArray(FOUR, colorlist);
+  if (ToDraw == '5')
+    drawArray(FIVE, colorlist);
+  if (ToDraw == '6')
+    drawArray(DRAW_SIX, colorlist);
+  if (ToDraw == '7')
+    drawArray(SEVEN, colorlist);
+  if (ToDraw == '8')
+    drawArray(EIGHT, colorlist);
+  if (ToDraw == '9')
+    drawArray(NINE, colorlist);
+  if (ToDraw == '.')
+    drawArray(POINT, colorlist);
+  if (ToDraw == 'C')
+    drawArray(WC, colorlist);
+  if (ToDraw == 'F')
+    drawArray(WF, colorlist);
+}
+
+void drawArray(int arr[], int colors[]) 
+{
+  for (int i = 0; i < 25; i++)
+  {
+    M5.dis.drawpix(i, colors[arr[i]]);
+  }
+}
+
+
+void MAINMENU(int& count) { 
+  String MENUcountTOCHAR;
+
+  M5.IMU.getAccelData(&accX, &accY, &accZ);
+  scaledAccX = accX * 1000;
+  scaledAccY = accY * 1000;
+  scaledAccZ = accZ * 1000;
+
+  if (abs(scaledAccX) < LOW_TOL && abs(scaledAccY) < LOW_TOL && abs(scaledAccZ) > HIGH_TOL && scaledAccZ > 0) //M5 facing down 
+  {
+    M5.dis.clear(); 
+    count = 0; 
+    delay(1000);
+    Serial.println("OFF");
+  }
+
+
+
+  else if (abs(scaledAccX) > HIGH_TOL && abs(scaledAccY) < LOW_TOL && abs(scaledAccZ) < LOW_TOL && scaledAccX > 0) 
+  {
+    count++;  
+    if (count > 5)
+      count = 1;
+    delay(1000);
+
+    MENUcountTOCHAR = String(count);
+
+    Serial.println(MENUcountTOCHAR[0]);
+
+    ChooseChar(MENUcountTOCHAR[0], WhiteColorlist); 
+
+  }
+
+  else if (abs(scaledAccX) > HIGH_TOL && abs(scaledAccY) < LOW_TOL && abs(scaledAccZ) < LOW_TOL && scaledAccX < 0)
+  {
+   
+    count--; 
+    if (count < 1)
+      count = 5;
+
+    delay(1000);
+
+    MENUcountTOCHAR = String(count);
+
+
+    Serial.println(MENUcountTOCHAR[0]);
+    ChooseChar(MENUcountTOCHAR[0], WhiteColorlist); 
+
+  }
+
+  else {
+    if (count != 0) {
+      ChooseChar(MENUcountTOCHAR[0], WhiteColorlist); 
+    }
+  }
+  //delay(250);
+  M5.update();
+}
+
+
+
+
+
+void loop() { 
+  
+  getTemp(Temp, SumTemp, count);
+
+  if (BUTTON == false || MENUcount == 0) {  
+    while (1) {
+      MAINMENU(MENUcount);
+      if (M5.Btn.wasPressed()) { 
+        BUTTON = true;
+        break;
+      }
+
+    }
+  }
+
+  if (BUTTON == true) {
+    switch (MENUcount) {
+      case 1:
+        DisplayFixedTemp(Temp, C); 
+        M5.update();
+        break;
+
+      case 2:
+        DisplayAvgTemp(SumTemp, count, C); 
+        M5.update();
+        break;
+
+      case 3:
+        DisplayColorTemp(Temp, C); 
+        M5.update();
+        break;
+
+      case 4:
+        SketchGraph(); 
+        M5.update();
+        break;
+
+      case 5: 
+        if (flag == true) {  
+          if (C == true)
+            C = false;
+          else if (C == false)
+            C = true;
+
+          flag = false;
+        }
+
+        Serial.println(C);
+        break;
+
+    }
+
+    M5.IMU.getAccelData(&accX, &accY, &accZ);
+
+    scaledAccX = accX * 1000;
+    scaledAccY = accY * 1000;
+    scaledAccZ = accZ * 1000;
+
+    if (abs(scaledAccX) < LOW_TOL && abs(scaledAccY) < LOW_TOL && abs(scaledAccZ) > HIGH_TOL && scaledAccZ > 0) //if matrix is facing down 
+    {
+      M5.dis.clear();
+      MENUcount = 0;
+      delay(1000);
+      BUTTON = false;
+      flag = true;
+    }
+
+  }
+  M5.update();
+}
